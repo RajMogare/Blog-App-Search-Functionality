@@ -18,31 +18,26 @@ export async function GET(request) {
   }
 }
 
+//API ENDPOINT FOR UPLOADIN BLOGS
 export async function POST(request) {
-  // Ensure the database is connected
-  if (!mongoose.connection.readyState) await connectDB();
-
   const formData = await request.formData();
   const timestamp = Date.now();
-
   const image = formData.get("image");
   const imageByteData = await image.arrayBuffer();
   const buffer = Buffer.from(imageByteData);
-
-  // Dynamically create an image path in serverless environments
-  const imgFileName = `${timestamp}_${image.name}`;
-  const imgPath = `/tmp/${imgFileName}`; // Use /tmp for serverless environments like Vercel
-  await writeFile(imgPath, buffer);
+  const path = `./public/${timestamp}_${image.name}`;
+  await writeFile(path, buffer);
+  const imgUrl = `/${timestamp}_${image.name}`;
 
   const blogData = {
     title: `${formData.get("title")}`,
     description: `${formData.get("description")}`,
     category: `${formData.get("category")}`,
-    image: `${imgFileName}`, // Save just the filename or adjust according to your requirements
+    image: `${imgUrl}`,
   };
-
   await blogModel.create(blogData);
-  console.log("Blog created");
+  console.log("Blog crated");
 
+  // console.log(imgUrl);
   return NextResponse.json({ success: true, msg: "Blog Added" });
 }
